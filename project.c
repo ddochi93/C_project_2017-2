@@ -9,9 +9,9 @@ void addFile();
 
 int fileNum = 0 ;
 
-typedef struct {
+typedef struct word_list{
 	char* word;
-	word_list* next;
+	struct word_list* next;
 } word_list;
 
 int main(void)
