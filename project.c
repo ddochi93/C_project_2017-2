@@ -9,6 +9,11 @@ void addFile();
 
 int fileNum = 0 ;
 
+typedef struct {
+	char* word;
+	word_list* next;
+} word_list;
+
 int main(void)
 {
 		int menu;
