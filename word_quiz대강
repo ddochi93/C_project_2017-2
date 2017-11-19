@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#pragma warning(disable: 4996)
+
+
+void wordQuiz();
+void flashCard();
+void hangman();
+void wordList();
+void addFile();
+
+int fileNum = 0 ;
+
+typedef struct word_list{
+	char * eng_word;
+	char * kor_word[3];
+	struct word_list* next;
+} word_list;
+
+
+
+int main(void)
+{
+	FILE * fp = NULL;
+	char fileHead[100];
+	char fileTail[100] = ".dic";
+	int output_select;
+	char buffer[50];  //단어를 입력받기 위한 배열
+	char * point;
+
+	char word[20];
+
+	int i;
+
+	printf("파일명(일차)\n");
+	gets(fileHead);
+	strcat(fileHead,fileTail);
+
+	fp = fopen(fileHead,"r");
+	if( fp == NULL)
+		printf("%s파일이 없습니다!!!\n",fileHead);
+
+	printf("출력방식(알파벳 순서대로 : 1, 무작위 : 2) : ");
+	scanf("%d",&output_select);
+
+	if(output_select == 2)
+	{
+		while( fgets(buffer, 100, fp) != NULL)
+		{
+
+			word_list * newNode;
+			newNode = (word_list *)malloc( sizeof(word_list));
+			//45~48 : newNode초기화
+			newNode->eng_word = NULL;
+			for(i=0 ; i<3; i++)
+				newNode->kor_word[i] = NULL;
+			newNode ->next = NULL;
+
+			point = strtok(buffer," ");
+
+			newNode ->eng_word = (char*)malloc( sizeof(char) * strlen(point) + 1);
+			strcpy(newNode ->eng_word,point);
+
+			point = strtok(NULL," ");
+			newNode->kor_word[0] = (char *)malloc( sizeof(char) * strlen(point) +1);
+			strcpy(newNode ->kor_word[0],point);
+
+			printf("%s -> ",newNode->kor_word[0]);
+			gets(word);
+			if( strcmp(newNode -> eng_word,word) == 0 )
+				printf("correct!\n");
+			else if( strcmp(".quit", word) == 0)
+				break;
+			else
+				printf("incorrect!\n");
+
+		}
+	}
+
+
+	return 0;
+}
