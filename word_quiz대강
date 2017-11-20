@@ -33,6 +33,7 @@ int main(void)
     char word[20];   //단어 게임시 입력받는 배열
 
     int i = 0 ;
+    int cnt = 0;        //맞힌 단어 갯수
 
     printf("파일명(일차)\n");
     gets(fileHead);
@@ -40,7 +41,10 @@ int main(void)
 
     fp = fopen(fileHead,"r");
     if( fp == NULL)
+    {
         printf("%s파일이 없습니다!!!\n",fileHead);
+        return -1;
+    }
 
     printf("출력방식(알파벳 순서대로 : 1, 무작위 : 2) : ");
     scanf("%d",&output_select);
@@ -70,18 +74,30 @@ int main(void)
             strcpy(newNode ->kor_word[0],point);
 
               printf("%s -> ",newNode->kor_word[0]);
-              myflush();              //이거 안해주면 첫줄에 china -> incorrect됨. (입력 버퍼 비워준다.)
-            scanf("%s",word);            
+              myflush();              //이거 안해주면 첫줄에 china -> incorrect됨. (입력 버퍼 비워준다. - 근데 입력버퍼가 왜차잇지??)
+            scanf("%s",word);            //이거 gets(word)로 했을떈 왜 이상했을까?
+
+            i++;                        //단어 넘어갈때마다 i는 증가 (점수계산위함)
+
             if( strcmp(newNode -> eng_word,word) == 0 )
-              printf("correct!\n");
+            {
+                printf("correct!\n");
+                cnt++;
+            }
             else if( strcmp(".quit", word) == 0)
+            {
+                i--;         //이떄는 i를 올리지 않아야함
               break;
+            }
             else
+
               printf("incorrect!\n");
 
         }
     }
 
+    printf("당신의 점수는 %.2f 점입니다.\n", (float)cnt/i * 100);
+    getchar();
 
     return 0;
 }
