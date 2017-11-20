@@ -10,7 +10,8 @@ void addFile();
 int fileNum = 0 ;
 
 typedef struct word_list{
-	char* word = NULL;
+	char* word;
+	char* mean[3];
 	struct word_list* next = NULL;
 } word_list;
 
