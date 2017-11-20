@@ -9,75 +9,86 @@ void flashCard();
 void hangman();
 void wordList();
 void addFile();
+void myflush();
 
 int fileNum = 0 ;
 
 typedef struct word_list{
-	char * eng_word;
-	char * kor_word[3];
-	struct word_list* next;
+    char * eng_word;
+    char * kor_word[3];
+    struct word_list* next;
 } word_list;
 
 
 
 int main(void)
 {
-	FILE * fp = NULL;
-	char fileHead[100];
-	char fileTail[100] = ".dic";
-	int output_select;
-	char buffer[50];  //단어를 입력받기 위한 배열
-	char * point;
+    FILE * fp = NULL;
+    char fileHead[100];
+    char fileTail[100] = ".dic";
+    int output_select;
+    char buffer[50];  //단어를 입력받기 위한 배열
+    char * point;     //각 줄에 잘라낸 한글,영 단어를 포인트하는 포인터
 
-	char word[20];
+    char word[20];   //단어 게임시 입력받는 배열
 
-	int i;
+    int i = 0 ;
 
-	printf("파일명(일차)\n");
-	gets(fileHead);
-	strcat(fileHead,fileTail);
+    printf("파일명(일차)\n");
+    gets(fileHead);
+    strcat(fileHead,fileTail);
 
-	fp = fopen(fileHead,"r");
-	if( fp == NULL)
-		printf("%s파일이 없습니다!!!\n",fileHead);
+    fp = fopen(fileHead,"r");
+    if( fp == NULL)
+        printf("%s파일이 없습니다!!!\n",fileHead);
 
-	printf("출력방식(알파벳 순서대로 : 1, 무작위 : 2) : ");
-	scanf("%d",&output_select);
+    printf("출력방식(알파벳 순서대로 : 1, 무작위 : 2) : ");
+    scanf("%d",&output_select);
 
-	if(output_select == 2)
-	{
-		while( fgets(buffer, 100, fp) != NULL)
-		{
+    if(output_select == 2)
+    {
+        while( fgets(buffer, 10000, fp) != NULL)
+        {
+            //fgets는 '\n'도 문자열의 일부로 받으므로 제거하고 NULL문자 삽입하는 는과정
+            buffer[ strlen(buffer) -1] = '\0';
 
-			word_list * newNode;
-			newNode = (word_list *)malloc( sizeof(word_list));
-			//45~48 : newNode초기화
-			newNode->eng_word = NULL;
-			for(i=0 ; i<3; i++)
-				newNode->kor_word[i] = NULL;
-			newNode ->next = NULL;
+            word_list * newNode;
+            newNode = (word_list *)malloc( sizeof(word_list));
+            //밑에세 줄 : newNode초기화
+//          newNode->eng_word = NULL;
+//          for(i=0 ; i<3; i++)
+//              newNode->kor_word[i] = NULL;
+//          newNode ->next = NULL;
 
-			point = strtok(buffer," ");
+            point = strtok(buffer," ");
 
-			newNode ->eng_word = (char*)malloc( sizeof(char) * strlen(point) + 1);
-			strcpy(newNode ->eng_word,point);
+            newNode ->eng_word = (char*)malloc( sizeof(char) * strlen(point) + 1);
+            strcpy(newNode ->eng_word,point);
 
-			point = strtok(NULL," ");
-			newNode->kor_word[0] = (char *)malloc( sizeof(char) * strlen(point) +1);
-			strcpy(newNode ->kor_word[0],point);
+            point = strtok(NULL," ");
+            newNode->kor_word[0] = (char *)malloc( sizeof(char) * strlen(point) +1);
+            strcpy(newNode ->kor_word[0],point);
 
-			printf("%s -> ",newNode->kor_word[0]);
-			gets(word);
-			if( strcmp(newNode -> eng_word,word) == 0 )
-				printf("correct!\n");
-			else if( strcmp(".quit", word) == 0)
-				break;
-			else
-				printf("incorrect!\n");
+              printf("%s -> ",newNode->kor_word[0]);
+              myflush();              //이거 안해주면 첫줄에 china -> incorrect됨. (입력 버퍼 비워준다.)
+            scanf("%s",word);            
+            if( strcmp(newNode -> eng_word,word) == 0 )
+              printf("correct!\n");
+            else if( strcmp(".quit", word) == 0)
+              break;
+            else
+              printf("incorrect!\n");
 
-		}
-	}
+        }
+    }
 
 
-	return 0;
+    return 0;
+}
+
+
+void myflush()
+{
+    while( getchar() != '\n')
+        ;
 }
