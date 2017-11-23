@@ -11,6 +11,7 @@ void wordList();
 void addFile();
 void myflush();
 
+
 int fileNum = 0 ;
 
 typedef struct word_list{
@@ -18,6 +19,9 @@ typedef struct word_list{
     char * kor_word[3];
     struct word_list* next;
 } word_list;
+
+typedef word_list Node;
+int WhoIsPreced(word_list w1, word_list w2);
 
 
 
@@ -27,13 +31,14 @@ int main(void)
     char fileHead[100];
     char fileTail[100] = ".dic";
     int output_select;
-    char buffer[50];  //단어를 입력받기 위한 배열
+    char buffer[50];  // .dic에서 개행기준 한 줄을 입력받기 위한 배열
     char * point;     //각 줄에 잘라낸 한글,영 단어를 포인트하는 포인터
 
     char word[20];   //단어 게임시 입력받는 배열
 
     int i = 0 ;
     int cnt = 0;        //맞힌 단어 갯수
+    int flag = 0;      //무작위출력하때 switch case 쓰기위함
 
     printf("파일명(일차)\n");
     gets(fileHead);
@@ -46,60 +51,105 @@ int main(void)
         return -1;
     }
 
+
+    Node * head = NULL;
+    Node * cursor = NULL;
+    //  Node * tail = NULL;
+
     printf("출력방식(알파벳 순서대로 : 1, 무작위 : 2) : ");
     scanf("%d",&output_select);
 
-    if(output_select == 2)
+    //if(output_select == 2)
+    //{
+    while( fgets(buffer, 10000, fp) != NULL)
     {
-        while( fgets(buffer, 10000, fp) != NULL)
+        //fgets는 '\n'도 문자열의 일부로 받으므로 제거하고 NULL문자 삽입하는 는과정
+        buffer[ strlen(buffer) -1] = '\0';
+
+        Node * newNode;
+        newNode = (Node *)malloc( sizeof(Node));
+        //밑에세 줄 : newNode초기화
+        newNode->eng_word = NULL;
+        for(i=0 ; i<3; i++)
+            newNode->kor_word[i] = NULL;
+        newNode ->next = NULL;
+
+        point = strtok(buffer," ");
+
+        newNode ->eng_word = (char*)malloc( sizeof(char) * strlen(point) + 1);
+        strcpy(newNode ->eng_word,point);
+
+        point = strtok(NULL," ");
+        newNode->kor_word[0] = (char *)malloc( sizeof(char) * strlen(point) +1);
+        strcpy(newNode ->kor_word[0],point);
+
+		if(output_select == 1)    // 노드 순차 출력
+		{
+			
+		}
+        if(output_select == 2)          //노드 무작위 출력
         {
-            //fgets는 '\n'도 문자열의 일부로 받으므로 제거하고 NULL문자 삽입하는 는과정
-            buffer[ strlen(buffer) -1] = '\0';
-
-            word_list * newNode;
-            newNode = (word_list *)malloc( sizeof(word_list));
-            //밑에세 줄 : newNode초기화
-//          newNode->eng_word = NULL;
-//          for(i=0 ; i<3; i++)
-//              newNode->kor_word[i] = NULL;
-//          newNode ->next = NULL;
-
-            point = strtok(buffer," ");
-
-            newNode ->eng_word = (char*)malloc( sizeof(char) * strlen(point) + 1);
-            strcpy(newNode ->eng_word,point);
-
-            point = strtok(NULL," ");
-            newNode->kor_word[0] = (char *)malloc( sizeof(char) * strlen(point) +1);
-            strcpy(newNode ->kor_word[0],point);
-
-              printf("%s -> ",newNode->kor_word[0]);
-              myflush();              //이거 안해주면 첫줄에 china -> incorrect됨. (입력 버퍼 비워준다. - 근데 입력버퍼가 왜차잇지??)
-            scanf("%s",word);            //이거 gets(word)로 했을떈 왜 이상했을까?
-
-            i++;                        //단어 넘어갈때마다 i는 증가 (점수계산위함)
-
-            if( strcmp(newNode -> eng_word,word) == 0 )
+			// head = NULL 이거 해야되나??(계속 호출할시 head가 멀 가리키고 있으면 안될듯-나중에 확인)
+            if(head == NULL)              //노드를 무작위로 연결..(이게 시작)
             {
-                printf("correct!\n");
-                cnt++;
-            }
-            else if( strcmp(".quit", word) == 0)
-            {
-                i--;         //이떄는 i를 올리지 않아야함
-              break;
+                head = newNode;
             }
             else
+            {
+                switch(flag = rand() % 2)
+                {
+                case 0:     // 새로생긴 노드를 대가리에 이음
+                    {
+                        cursor = head; //필요?
+                        newNode ->next = head;
+                        head = newNode;
+                        break;
+                    }
+                case 1:     // 새로생긴 노드를 꼬리에 이음
+                    {
+                        for( cursor = head  ; cursor ->next != NULL ; cursor = cursor->next)
+                            ;
+                        cursor->next  = newNode;
+                    }
+                }
 
-              printf("incorrect!\n");
+            }
 
         }
     }
 
+
+    cursor = head;  //필요?
+    i = 0 ;  //위에서 i 가3 로 되어있으므로 다시 0으로 초기화시킨다.
+    while(1)                         //(무작위로 연결된) 노드를 출력...
+    {
+        printf("%s -> ", cursor->kor_word[0]);
+        scanf("%s",word);
+        if( strcmp(cursor->eng_word,word) == 0 )
+        {
+            printf("correct!\n");
+            cnt++;            //맞은 문제는 맞아야만 증가
+        }
+        else if( strcmp(".quit",word) == 0)
+        {
+
+            break;
+        }
+        else
+            printf("incorrect!\n");
+        cursor = cursor ->next;
+        i++;   //푼 문제는 계속증가
+        if(cursor == NULL)
+            break;
+    }
+    //}
+
+    printf("맞은 문제(cnt) : %d     , 푼 문제(i) : %d\n",cnt,i);
     printf("당신의 점수는 %.2f 점입니다.\n", (float)cnt/i * 100);
     getchar();
 
     return 0;
+
 }
 
 
@@ -108,3 +158,11 @@ void myflush()
     while( getchar() != '\n')
         ;
 }
+/*
+int WhoIsPrecede(word_list d1, word_list d2)
+{
+if(d1<d2)
+return 0;
+else
+}
+*/
