@@ -1,89 +1,544 @@
 #include <stdio.h>
+#include <unistd.h>            //sleep()ÀÇ Çì´õÆÄÀÏ
 #include <stdlib.h>
+#include <time.h>
+#include <string.h>
+#include <dirent.h>
+#pragma warning(disable: 4996)
+
+int fileNum = 0 ;
+typedef struct word_list{
+    char * eng_word;
+    char * kor_word[3];
+    struct word_list* next;
+} word_list;
+typedef word_list Node;
+Node * head = NULL;
+Node * cursor = NULL;
 
 void wordQuiz();
 void flashCard();
 void hangman();
-void wordList();
+void wordManage();
 void addFile();
-
-int fileNum = 0 ;
-
-typedef struct word_list{
-	char* word;
-	char* mean[3];
-	struct word_list* next = NULL;
-} word_list;
+void myflush();
+void gotoxy(int x, int y);
+void ascendingOrderWords(char * buffer, int buffersize, FILE * fp);
+void randomWords(char *buffer, int buffersize, FILE *fp);
+FILE * DayDicLoad();             //ÀÔ·ÂÇÑ ÀÏÂ÷ÀÇ ´Ü¾îÀåÀ» ·ÎµåÇÏ´Â ÇÔ¼ö.
 
 int main(void)
 {
-		int menu;
-		system("clear");
-		printf(">> ì˜ì–´ ë‹¨ì–´ ì•”ê¸° í”„ë¡œê·¸ë¨ <<\n");
-		printf("1. ì˜ì–´ ë‹¨ì–´ ë§ì¶”ê¸°		2. í”Œë˜ì‰¬ì¹´ë“œ\n");
-		printf("3. í–‰ë§¨(hangman)		4. ë‹¨ì–´ì¥ ê´€ë¦¬\n");
-		printf("5. í”„ë¡œê·¸ë¨ ì¢…ë£Œ\n\n");
+    int menu;
+    while(1)
+    {
+        system("clear");
+        printf(">> ¿µ¾î ´Ü¾î ¾Ï±â ÇÁ·Î±×·¥ <<\n");
+        printf("1. ¿µ¾î ´Ü¾î ¸ÂÃß±â     2. ÇÃ·¡½¬Ä«µå\n");
+        printf("3. Çà¸Ç(hangman)        4. ´Ü¾îÀå °ü¸®\n");
+        printf("5. ÇÁ·Î±×·¥ Á¾·á\n\n");
 
-		printf("ë²ˆí˜¸ë¥¼ ì„ íƒí•˜ì„¸ìš” : ");
-		scanf("%d",&menu);
-		
-		switch(menu)
-		{
-				case 1 : wordQuiz(); break;
-				case 2 : flashCard(); break;
-				case 3 : hangman() ; break;
-				case 4 : wordList(); break;
-				case 5 : system("exit"); 
-		}
-		return 0;
+        printf("¹øÈ£¸¦ ¼±ÅÃÇÏ¼¼¿ä : ");
+        scanf("%d",&menu);
+        switch(menu)
+        {
+
+        case 1 : wordQuiz(); break;
+        case 2 : flashCard(); break;
+        case 3 : hangman() ; break;
+        case 4 : wordManage(); break;
+        case 5 :printf("´Ü¾îÀå Á¾·áÇÕ´Ï´Ù!!\n"); sleep(5);  return 0;
+        }
+    }
+    printf("³¡!!!\n");
+    return 0;
 }
 
-void wordQuiz()
+void addFile(){
+        DIR *dir;
+        struct dirent *ent;
+        char* token;
+        char* temp_token;
+        char* filename;
+        char* temp_filename = "0";
+
+        dir = opendir ("./");
+        if (dir != NULL) {
+                while ((ent = readdir(dir)) != NULL) {
+                        token = (char*)calloc(strlen(ent->d_name),sizeof(char));
+                        token = strtok(ent->d_name,".");
+                        printf("%s\n",token);
+                        //temp_token = (char*)calloc(strlen(token),sizeof(char));
+                        //*temp_token = *token;
+                        //while(token!=NULL){
+                        //      token = strtok(NULL,".");
+                        //      if(strcmp(token,"dic")==0){
+                                        //if(temp_filename < temp_token)
+                                                //strcpy(temp_filename, temp_token);
+                        //      }
+                //      }
+                }
+                //printf("%s\n",temp_filename);
+                closedir (dir);
+        } else {
+                printf("µğ·ºÅÍ¸®¸¦ ¿­ ¼ö ¾ø½À´Ï´Ù.\n");
+    }
+}
+
+void wordManage()
 {
-		printf("íŒŒì¼ëª…(ì¼ì°¨)\n");
-		printf("ì¶œë ¥ë°©ì‹(ì•ŒíŒŒë²³ ìˆœì„œëŒ€ë¡œ : 1, ë¬´ì‘ìœ„ :2) : ");
+        int sel;
+        system("clear");
+        printf(">> ¿µ¾î ´Ü¾î ¾Ï±â ÇÁ·Î±×·¥ : ´Ü¾îÀå °ü¸® <<\n");
+        printf("1. »õ ÆÄÀÏ Ãß°¡ÇÏ±â             2. »õ ´Ü¾î Ãß°¡ÇÏ±â\n");
+        printf("3. ´Ü¾îÀå º¸±â                  4. ´Ü¾î ÆÄÀÏ ¸ñ·Ïº¸±â\n");
+        printf("5. ´Ü¾îÀå °ü¸® Á¾·á\n");
+        printf("\n¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä : ");
+        scanf("%d",&sel);
+        switch(sel){
+                case 1:
+                        addFile();
+                        break;
+                case 2:
+                        break;
+                case 3:
+                        break;
+                case 4:
+                        break;
+                case 5:
+                        break;
+        }
 }
 
 void flashCard()
 {
-		printf("ì†ë„(ì´ˆ) : ");
+    //Node * head = NULL;
+    //Node * cursor = NULL;
+    int t;     //Áö¿¬µÉ ½Ã°£
+    printf("¼Óµµ(ÃÊ) : ");
+    scanf("%d",&t);
+
+    FILE * ffp = DayDicLoad();
+    if( ffp == NULL)
+        return;
+    char word[20] ;             //º¯¼ö¸í °°¾Æµµ µÇ³ª?
+    int output_select;
+    char buffer[50];
+
+    printf("Ãâ·Â¹æ½Ä(¾ËÆÄºª ¼ø¼­´ë·Î : 1, ¹«ÀÛÀ§ :2) : ");
+    while( scanf("%d",&output_select) != 1)
+    {
+        printf("¼ıÀÚ¸¦ ÀÔ·ÂÇÏ½Ã¿À!\n");
+        myflush();
+        continue;
+    }
+     system("clear");
+    printf(">> ¿µ¾î ´Ü¾î ¾Ï±â ÇÁ·Î±×·¥ : ÇÃ·¡½¬Ä«µå <<\n");
+
+    if(output_select == 1)
+    {
+        ascendingOrderWords(buffer,100,ffp);
+    }
+    else if(output_select == 2)          //³ëµå ¹«ÀÛÀ§ Ãâ·Â
+        randomWords(buffer,100,ffp);
+    else
+    {
+        printf("1°ú 2¸¸ ÀÔ·ÂÇÏ½Ã¿À!!\n");
+        sleep(1);
+        return;
+    }
+
+    cursor = head;
+
+    while(1)
+    {
+        gotoxy(50,25);
+        printf("%s : ", cursor->eng_word);
+        fflush(stdout);             //Ãâ·ÂÀü¿¡ sleepÀÌ µÇ¼­ È­¸é¿¡ ¾È³ª¿È. ///////////////////////////////////////////
+        sleep(t);
+        printf("%s\n",cursor->kor_word[0]);
+        fflush(stdout);
+        sleep(t);
+        system("clear");
+
+        cursor = cursor -> next;
+        if(cursor ==NULL)
+            break;
+    }
+
 }
 
-void hangman()
+void wordQuiz(void)
 {
-		printf("hangman::");
+    FILE * fp = DayDicLoad();
+
+    if(fp == NULL)
+        return;
+    char word[20];   //´Ü¾î °ÔÀÓ½Ã ÀÔ·Â¹Ş´Â ¹è¿­
+    int i = 0 ;
+    int cnt = 0;        //¸ÂÈù ´Ü¾î °¹¼ö
+    int output_select; //¹«ÀÛÀ§ÀÎÁö ¿À¸§Â÷¼ø Á¤·ÄÀÎÁö °í¸£´Â ¸Ş´º.
+    char buffer[50];  // .dic¿¡¼­ °³Çà±âÁØ ÇÑ ÁÙÀ» ÀÔ·Â¹Ş±â À§ÇÑ ¹è¿­
+
+    printf("Ãâ·Â¹æ½Ä(¾ËÆÄºª ¼ø¼­´ë·Î : 1, ¹«ÀÛÀ§ : 2) : ");
+
+    while( scanf("%d",&output_select) != 1)
+    {
+        printf("¼ıÀÚ¸¦ ÀÔ·ÂÇÏ½Ã¿À!\n");
+        myflush();
+        continue;
+    }
+
+    system("clear");
+    printf(">> ¿µ¾î ´Ü¾î ¾Ï±â ÇÁ·Î±×·¥ : ¿µ¾î ´Ü¾î ¸ÂÃß±â <<\n");
+
+    if(output_select == 1)
+        ascendingOrderWords(buffer,100,fp);
+
+    else if(output_select == 2)          //³ëµå ¹«ÀÛÀ§ Ãâ·Â
+        randomWords(buffer,100,fp);
+    else
+    {
+        printf("1°ú 2¸¸ ÀÔ·ÂÇÏ½Ã¿À!!\n");
+        sleep(1);
+        return;
+    }
+
+    cursor = head;  //ÇÊ¿ä? (Ä¿¼­°¡ ¸¶Áö¸· ÀüÀÇ ³ëµå¸¦ °¡¸®Å°¹Ç·Î ²À ÇÊ¿ä!! ¾ÈÇÏ¸éÁ¿µÊ)
+    i = 0 ;  //À§¿¡¼­ i °¡3 ·Î µÇ¾îÀÖÀ¸¹Ç·Î ´Ù½Ã 0À¸·Î ÃÊ±âÈ­½ÃÅ²´Ù.
+    printf("cursor ÁÖ¼Û:%d\n\n\n",cursor->eng_word);
+    while(1)                         //(¹«ÀÛÀ§·Î ¿¬°áµÈ) ³ëµå¸¦ Ãâ·Â...
+    {
+        printf("%s -> ", cursor->kor_word[0]);
+        scanf("%s",word);
+        if( strcmp(cursor->eng_word,word) == 0 )
+        {
+            printf("correct!\n");
+            cnt++;            //¸ÂÀº ¹®Á¦´Â ¸Â¾Æ¾ß¸¸ Áõ°¡
+        }
+        else if( strcmp(".quit",word) == 0)
+        {
+
+            break;
+        }
+        else
+            printf("incorrect!\n");
+        cursor = cursor ->next;
+        i++;   //Ç¬ ¹®Á¦´Â °è¼ÓÁõ°¡
+        if(cursor == NULL)
+            break;
+    }
+    //}
+
+    printf("¸ÂÀº ¹®Á¦(cnt) : %d     , Ç¬ ¹®Á¦(i) : %d\n",cnt,i);
+    printf("´ç½ÅÀÇ Á¡¼ö´Â %.2f Á¡ÀÔ´Ï´Ù.(enter ÀÔ·ÂÇÏ¸é ÃÊ±â¸Ş´º·Î ÀÌµ¿)\n", (float)cnt/i * 100);
+
+    myflush();
+    if( getchar() == '\n')
+        return;
 }
 
-void wordList()
-{
-		int wordList_menu;
-		system("clear");
-		printf(">> ì˜ì–´ ë‹¨ì–´ ì•”ê¸° í”„ë¡œê·¸ë¨ : ë‹¨ì–´ì¥ ê´€ë¦¬ <<\n");
-		printf("1. ìƒˆ íŒŒì¼ ì¶”ê°€í•˜ê¸°			2. ìƒˆ ë‹¨ì–´ ì¶”ê°€í•˜ê¸°\n");
-		printf("3. ë‹¨ì–´ì¥ ë³´ê¸°				4. ë‹¨ì–´ íŒŒì¼ ëª©ë¡ë³´ê¸°\n");
-		printf("5. ë‹¨ì–´ì¥ ê´€ë¦¬ ì¢…ë£Œ\n\n");
 
-		printf("ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš” : ");
-		scanf("%d",&wordList_menu);
-		while(1)
-		{ 
-			switch(wordList_menu)
-				{
-					case 1 : addFile(); break;
-					case 2 : addWord() ; break;
-				}
-		}
+FILE * DayDicLoad()              //ÀÔ·ÂÇÑ ÀÏÂ÷ÀÇ ´Ü¾îÀåÀ» ·ÎµåÇÏ´Â ÇÔ¼ö.
+{
+    myflush();
+    FILE * fp = NULL;
+    char fileHead[100];
+    char fileTail[100] = ".dic";
+    printf("ÆÄÀÏ¸í(ÀÏÂ÷) : ");
+    gets(fileHead);
+    strcat(fileHead,fileTail);
+
+    fp = fopen(fileHead,"r");
+    if( fp == NULL)
+    {
+        printf("%sÆÄÀÏÀÌ ¾ø½À´Ï´Ù!!!\n",fileHead);
+        return NULL;
+    }
+    return fp;
 }
 
-void addFile(void)
+void randomWords(char *buffer, int buffersize, FILE *fp)
 {
-	FILE * ifp;
-	ifp = fopen("1.dic","w");
+    srand(time(NULL));
+    int flag = 0; //¹«ÀÛÀ§Ãâ·ÂÇÏ¶§ switch case ¾²±âÀ§ÇÔ
+    char * point;
+    int i =0;
+    while( fgets(buffer,buffersize , fp) != NULL) {
+        //fgets´Â '\n'µµ ¹®ÀÚ¿­ÀÇ ÀÏºÎ·Î ¹ŞÀ¸¹Ç·Î Á¦°ÅÇÏ°í NULL¹®ÀÚ »ğÀÔÇÏ´Â ´Â°úÁ¤
+        buffer[ strlen(buffer) -1] = '\0';
 
+        Node * newNode;
+        newNode = (Node *)malloc( sizeof(Node));
+        //¹Ø¿¡¼¼ ÁÙ : newNodeÃÊ±âÈ­
+        newNode->eng_word = NULL;
+        for(i=0 ; i<3; i++)
+            newNode->kor_word[i] = NULL;
+        newNode ->next = NULL;
+
+        point = strtok(buffer," ");
+
+        newNode ->eng_word = (char*)malloc( sizeof(char) * strlen(point) + 1);
+        strcpy(newNode ->eng_word,point);
+
+        point = strtok(NULL," ");
+        newNode->kor_word[0] = (char *)malloc( sizeof(char) * strlen(point) +1);
+        strcpy(newNode ->kor_word[0],point);
+        //------------------------------------------------------------------------
+        // head = NULL ÀÌ°Å ÇØ¾ßµÇ³ª??(°è¼Ó È£ÃâÇÒ½Ã head°¡ ¸Ö °¡¸®Å°°í ÀÖÀ¸¸é ¾ÈµÉµí-³ªÁß¿¡ È®ÀÎ)
+        if(head == NULL)              //³ëµå¸¦ ¹«ÀÛÀ§·Î ¿¬°á..(ÀÌ°Ô ½ÃÀÛ)
+        {
+            head = newNode;
+            //  continue;
+        }
+        else {
+            switch(flag = rand() % 2) {
+            case 0:     // »õ·Î»ı±ä ³ëµå¸¦ ´ë°¡¸®¿¡ ÀÌÀ½
+                {
+                    cursor = head; //ÇÊ¿ä?
+                    newNode ->next = head;
+                    head = newNode;
+                    break;
+                }
+            case 1:     // »õ·Î»ı±ä ³ëµå¸¦ ²¿¸®¿¡ ÀÌÀ½
+                {
+                    for( cursor = head  ; cursor ->next != NULL ; cursor = cursor->next)
+                        ;
+                    cursor->next  = newNode;
+                }
+            }
+        }
+    }
 }
 
-void addWord(void)
+void ascendingOrderWords(char * buffer, int buffersize, FILE * fp)
 {
-	FILE * ifp;
-	char word[
+    int i=0;
+    char * point;     //°¢ ÁÙ¿¡ Àß¶ó³½ ÇÑ±Û,¿µ ´Ü¾î¸¦ Æ÷ÀÎÆ®ÇÏ´Â Æ÷ÀÎÅÍ
+    while( fgets(buffer, buffersize, fp) != NULL)
+    {
+        //fgets´Â '\n'µµ ¹®ÀÚ¿­ÀÇ ÀÏºÎ·Î ¹ŞÀ¸¹Ç·Î Á¦°ÅÇÏ°í NULL¹®ÀÚ »ğÀÔÇÏ´Â ´Â°úÁ¤
+        buffer[ strlen(buffer) -1] = '\0';
+
+        Node * newNode;
+        newNode = (Node *)malloc( sizeof(Node));
+        //¹Ø¿¡¼¼ ÁÙ : newNodeÃÊ±âÈ­
+        newNode->eng_word = NULL;
+        for(i=0 ; i<3; i++)
+            newNode->kor_word[i] = NULL;
+        newNode ->next = NULL;
+
+        point = strtok(buffer," ");
+
+        newNode ->eng_word = (char*)malloc( sizeof(char) * strlen(point) + 1);
+        strcpy(newNode ->eng_word,point);
+
+        point = strtok(NULL," ");
+        newNode->kor_word[0] = (char *)malloc( sizeof(char) * strlen(point) +1);
+        strcpy(newNode ->kor_word[0],point);
+        //-----------------------------------------------
+        cursor = head;
+        if(head == NULL)
+        {
+            head = newNode;
+            continue;
+        }
+        else if (strcmp(head->eng_word, newNode->eng_word) > 0)
+        {
+            newNode->next = head;
+            head = newNode;
+            continue;
+        }
+        }
+        else
+        {
+            while(cursor->next != NULL)
+            {
+                if( strcmp(cursor->next->eng_word, newNode->eng_word) >0)
+                {
+                    newNode ->next = cursor -> next;
+                    cursor ->next = newNode;
+                    break;
+                }
+                cursor = cursor->next;
+            }
+        }
+        cursor->next = newNode;
+
+    }
+}
+
+void myflush()
+{
+    while( getchar() != '\n')
+        ;
+}
+
+void gotoxy(int x, int y)
+{
+    printf("\033[%d;%df",y,x);
+}
+int hangman_word(char eng_word_line[]) {
+
+        int length;
+        length=strnlen(eng_word_line, 20);
+        for (int i = 0; i < length; i++) {
+                if (eng_word_line[i] == '\0')
+                        break;
+                eng_word_line[i] = '_';
+        }
+        return length;
+}
+void hangman() {
+        int hangman_count  = 1;
+        int try_num = 1;
+        int correct_count  = 0;
+        int loop_count;
+        _Bool answer_state = 0;
+        char input_word;
+        char eng_word_line[20];
+        char kor_word[20];
+        char dic_eng[20];
+    char buffer[50];
+
+        FILE * ffp = DayDicLoad();
+      if( ffp == NULL)
+          return;
+    randomWords(buffer,100,ffp);
+    cursor=head;
+
+        strcpy(eng_word_line,cursor->eng_word);
+        strcpy(dic_eng, cursor->eng_word);
+        strcpy(kor_word, cursor->kor_word[0]);
+        int word_length = hangman_word(eng_word_line);
+        char cmd;
+
+        for ( loop_count= 1; loop_count <= 20; loop_count++) {
+                system("clear");
+                printf(">>   ¿µ¾î ´Ü¾î ¾Ï±â ÇÁ·Î±×·¥ : Çà¸Ç   <<\n\n");
+                printf(" (ÈùÆ®) %s\n\n", kor_word);
+                switch (hangman_count) {
+                case 1: {
+                        printf("-------------------+\n");
+                        printf("\n");
+                        printf("\n");
+                        printf("\n");
+                        printf("\n");
+                        for (int j = 0; j <=word_length; j++) {
+                                printf("%c ", eng_word_line[j]);
+                        }
+                        printf("\n\n");
+                        printf("%d ¹øÂ° ½Ãµµ : ",try_num);
+                }break;
+                case 2: {
+                        printf("-------------------+\n");
+                        printf("                   O\n");
+                        printf("\n");
+                        printf("\n");
+                        printf("\n\n");
+                        for (int j = 0; j <= word_length; j++) {
+                                printf("%c ", eng_word_line[j]);
+                        }
+                        printf("\n");
+                        printf("%d ¹øÂ° ½Ãµµ : ", try_num);
+                }break;
+                case 3: {
+                        printf("-------------------+\n");
+                        printf("                   O\n");
+                        printf("                   l\n");
+                        printf("\n");
+                        printf("\n\n");
+                        for (int j = 0; j <= word_length; j++) {
+                                printf("%c ", eng_word_line[j]);
+                        }
+                        printf("\n\n");
+                        printf("%d ¹øÂ° ½Ãµµ : ", try_num);
+                }break;
+                case 4: {
+                        printf("-------------------+\n");
+                        printf("                   O\n");
+                        printf("                  /l\n");
+                        printf("\n");
+                        printf("\n\n");
+                        for (int j = 0; j <= word_length; j++) {
+                                printf("%c ", eng_word_line[j]);
+                        }
+                        printf("\n");
+                        printf("%d ¹øÂ° ½Ãµµ : ", try_num);
+                }break;
+                case 5: {
+                        printf("-------------------+\n");
+                        printf("                   O\n");
+                        printf("                  /l\n");
+                        printf("                  / \n");
+                        printf("\n\n");
+                        for (int j = 0; j <= word_length; j++) {
+                                printf("%c ", eng_word_line[j]);
+                        }
+                        printf("\n\n");
+                        printf("%d ¹øÂ° ½Ãµµ : ", try_num);
+                }break;
+                case 6: {
+                        printf("-------------------+   \n");
+                        printf("                   O   \n");
+                        printf("                  /l\\ \n");
+                        printf("                  /    \n");
+                        printf("\n\n");
+                        for (int j = 0; j <= word_length; j++) {
+                                printf("%c ", eng_word_line[j]);
+                        }
+                        printf("\n\n");
+                        printf("%d ¹øÂ° ½Ãµµ : ", try_num);
+                }break;
+                default: {
+                        printf("-------------------+   \n");
+                        printf("                   O   \n");
+                        printf("                  /l\\ \n");
+                        printf("                  /    \n");
+                        printf("\n\n");
+                        for (int j = 0; j <= word_length; j++) {
+                                printf("%c ", eng_word_line[j]);
+                        }
+                        printf("\n");
+                        printf("%d ¹øÂ° ½Ãµµ : ", try_num);
+                }break;
+        }
+
+                   scanf("%c",&input_word);
+
+                   for (int k = 0; k < word_length; k++) {
+                           if (input_word == dic_eng[k]) {
+                                   eng_word_line[k] = input_word;
+                                           answer_state = 1;
+
+                           }
+                           if (eng_word_line[k] != '_') {
+                                   correct_count++;
+                           }
+                   }
+                   getchar();
+                   if (correct_count == word_length) {
+                           printf("   ##########################\n");
+                           printf("   ### Congratulations!!! ###\n");
+                           printf("   ##########################\n");
+                           break;
+                   }
+                   else {
+                           correct_count = 0;
+                   }
+                   if (answer_state == 1) {
+                           try_num++;
+                           answer_state = 0;
+                   }
+                   else {
+                           hangman_count++;
+                           try_num++;
+                           answer_state = 0;
+                   }
+   }
+  printf("ÇÑ°ÔÀÓÀÌ Á¾·á ‰ç½À´Ï´Ù. (enter)Å°¸¦ ´©¸£¼¼¿ä.");
+
+  scanf("%c",&input_word);
+  if(input_word=='\n')
+    system("clear");
 }
