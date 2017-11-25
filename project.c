@@ -4,6 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdbool.h>
 #pragma warning(disable: 4996)
 
 int fileNum = 0 ;
@@ -19,14 +20,16 @@ Node * cursor = NULL;
 void wordQuiz();
 void flashCard();
 void hangman();
-void wordManage();
+void manageWord();
 void addFile();
+void newWords();
+void addWords(int num, bool is_new_file);
 void myflush();
 void gotoxy(int x, int y);
 void ascendingOrderWords(char * buffer, int buffersize, FILE * fp);
 void randomWords(char *buffer, int buffersize, FILE *fp);
 FILE * DayDicLoad();             //입력한 일차의 단어장을 로드하는 함수.
-int getSplit(char* msg, char* split, char*** result); //msg문자열을 split문자열 기준으로 분리하여 result로 리턴
+int getSplit(char* msg, char* split, char*** result); //msg문자열을 split문자열 기준으로 분리하여 result로 리턴, int형 리턴값은 split된 개수
 void freeSplit(char** result, int count);
 
 int main(void)
@@ -48,12 +51,91 @@ int main(void)
         case 1 : wordQuiz(); break;
         case 2 : flashCard(); break;
         case 3 : hangman() ; break;
-        case 4 : wordManage(); break;
+        case 4 : manageWord(); break;
         case 5 :printf("단어장 종료합니다!!\n"); sleep(5);  return 0;
         }
     }
     printf("끝!!!\n");
     return 0;
+}
+
+void newWords(){
+        int day;
+        printf("파일명(일차) : ");
+        scanf("%d",&day);
+        addWords(day,false);
+}
+
+void addWords(int num, bool is_new_file){
+        FILE* fp;
+        int max = 20;
+        char eng_word[max][16]; // 최대 15문자
+        char kor_word[max][3][61]; //최대 30문자
+        for(int a=0; a<max; a++)
+                for(int b=0; b<16; b++)
+                        eng_word[a][b] = '\0';
+        for(int a=0; a<max; a++)
+                for(int b=0; b<3; b++)
+                        for(int c=0; c<61; c++)
+                                kor_word[a][b][c] = '\0';
+        char* num_str;
+        int i;
+        char* temp_str = (char*)malloc(sizeof(char)*120);
+        int count;
+        char** result;
+
+        sprintf(num_str,"%d",num);
+        system("clear");
+        if(is_new_file){
+                printf(">> 영어 단어 암기 프로그램 : 단어장 관리 : 새 파일 추가 <<\n");
+                fp = fopen(strcat(num_str,".dic"),"w");
+        }else{
+                printf(">> 영어 단어 암기 프로그램 : 단어장 관리 : 새 단어 추가 <<\n");
+                fp = fopen(strcat(num_str,".dic"),"a");
+        }
+        myflush();
+        for(i=0; i<max; i++){
+                gets(temp_str);
+                count = getSplit(temp_str," ",&result);
+                if(strcmp(temp_str,".add") == 0)
+                        break;
+                /*if(eng_word[i][16] != '\0' || kor_word[i][0] != '\0' || kor_word[i][1] != '\0' || kor_word[i][2] != '\0'){
+                        printf("입력가능 문자 개수를 초과하였습니다. 다시 입력해주세요.\n");
+                        system("clear");
+                        if(is_new_file)
+                                printf(">> 영어 단어 암기 프로그램 : 단어장 관리 : 새 파일 추가 <<\n");
+                        else
+                                printf(">> 영어 단어 암기 프로그램 : 단어장 관리 : 새 단어 추가 <<\n");
+                        for(int j=0; j<i; j++){
+                                printf("%s %s %s %s\n",eng_word[j],kor_word[j][0],kor_word[j][1],kor_word[j][2]);
+                        }
+                }*/
+                switch(count){
+                case 4:
+                        strncpy(kor_word[i][2],result[3],60);
+                        kor_word[i][2][60] = '\0';
+                        //printf("%s ",kor_word[i][2]);
+                case 3:
+                        strncpy(kor_word[i][1],result[2],60);
+                        kor_word[i][1][60] = '\0';
+                        //printf("%s ",kor_word[i][1]);
+
+                case 2:
+                        strncpy(kor_word[i][0],result[1],60);
+                        kor_word[i][0][60] = '\0';
+                        //printf("%s ",kor_word[i][0]);
+                case 1:
+                        strncpy(eng_word[i],result[0],60);
+                        eng_word[i][15] = '\0';
+                        //printf("%s",eng_word[i]);
+                //default:
+                       //printf("\n");
+                }
+                freeSplit(result,count);
+        }
+        for(int k=0; k<i; k++)
+                fprintf(fp, "%s %s %s %s\n",eng_word[k],kor_word[k][0],kor_word[k][1],kor_word[k][2]);
+        fclose(fp);
 }
 
 void addFile(){
@@ -98,12 +180,13 @@ void addFile(){
         freeSplit(split,total_num);
         num_prefix = atoi(temp_prefix);
         num_prefix += 1;
-        sprintf(temp_prefix,"%d",num_prefix);
-        new_filename = strcat(temp_prefix,".dic");
-        fopen(new_filename, "w");
+        //sprintf(temp_prefix,"%d",num_prefix);
+        //new_filename = strcat(temp_prefix,".dic");
+        //fopen(new_filename, "w");
+        addWords(num_prefix,true);
 }
 
-void wordManage()
+void manageWord()
 {
         int sel;
         system("clear");
@@ -118,6 +201,7 @@ void wordManage()
                         addFile();
                         break;
                 case 2:
+                        newWords();
                         break;
                 case 3:
                         break;
@@ -178,11 +262,11 @@ void flashCard()
         fflush(stdout);
         sleep(t);
         system("clear");
+
         cursor = cursor -> next;
         if(cursor ==NULL)
             break;
     }
-
 }
 
 void wordQuiz(void)
