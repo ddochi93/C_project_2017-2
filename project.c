@@ -26,6 +26,8 @@ void gotoxy(int x, int y);
 void ascendingOrderWords(char * buffer, int buffersize, FILE * fp);
 void randomWords(char *buffer, int buffersize, FILE *fp);
 FILE * DayDicLoad();             //입력한 일차의 단어장을 로드하는 함수.
+int getSplit(char* msg, char* split, char*** result); //msg문자열을 split문자열 기준으로 분리하여 result로 리턴
+void freeSplit(char** result, int count);
 
 int main(void)
 {
@@ -57,32 +59,48 @@ int main(void)
 void addFile(){
         DIR *dir;
         struct dirent *ent;
-        char* token;
-        char* temp_token;
-        char* filename;
-        char* temp_filename = "0";
+        char* temp_prefix = "0";
+        int num_prefix;
+        int count;
+        int total_num = 0;
+        char** split;
+        char** temp_split;
+        char* new_filename;
+
+        split = (char**)malloc(sizeof(char*));
+
 
         dir = opendir ("./");
         if (dir != NULL) {
                 while ((ent = readdir(dir)) != NULL) {
-                        token = (char*)calloc(strlen(ent->d_name),sizeof(char));
-                        token = strtok(ent->d_name,".");
-                        printf("%s\n",token);
-                        //temp_token = (char*)calloc(strlen(token),sizeof(char));
-                        //*temp_token = *token;
-                        //while(token!=NULL){
-                        //      token = strtok(NULL,".");
-                        //      if(strcmp(token,"dic")==0){
-                                        //if(temp_filename < temp_token)
-                                                //strcpy(temp_filename, temp_token);
-                        //      }
-                //      }
+                        count = getSplit(ent->d_name,".",&temp_split);
+                        total_num += count;
+                        split = (char**)realloc(split,sizeof(char*)*total_num);
+                        for(int i=total_num-count,j=0; i<total_num; i++,j++){
+                                split[i] = temp_split[j];
+                        }
+
+
                 }
-                //printf("%s\n",temp_filename);
                 closedir (dir);
         } else {
                 printf("디렉터리를 열 수 없습니다.\n");
-    }
+        }
+
+        for(int i=0; i<total_num; i++){
+                if(strcmp(split[i],"dic") == 0){
+                        if(atoi(temp_prefix) < atoi(split[i-1])){
+                                temp_prefix = (char*)calloc(strlen(split[i-1])+1,sizeof(char));
+                                strcpy(temp_prefix, split[i-1]);
+                        }
+                }
+        }
+        freeSplit(split,total_num);
+        num_prefix = atoi(temp_prefix);
+        num_prefix += 1;
+        sprintf(temp_prefix,"%d",num_prefix);
+        new_filename = strcat(temp_prefix,".dic");
+        fopen(new_filename, "w");
 }
 
 void wordManage()
@@ -160,7 +178,6 @@ void flashCard()
         fflush(stdout);
         sleep(t);
         system("clear");
-
         cursor = cursor -> next;
         if(cursor ==NULL)
             break;
@@ -237,7 +254,6 @@ void wordQuiz(void)
     if( getchar() == '\n')
         return;
 }
-
 
 FILE * DayDicLoad()              //입력한 일차의 단어장을 로드하는 함수.
 {
@@ -349,7 +365,6 @@ void ascendingOrderWords(char * buffer, int buffersize, FILE * fp)
             head = newNode;
             continue;
         }
-        }
         else
         {
             while(cursor->next != NULL)
@@ -364,7 +379,6 @@ void ascendingOrderWords(char * buffer, int buffersize, FILE * fp)
             }
         }
         cursor->next = newNode;
-
     }
 }
 
@@ -389,6 +403,7 @@ int hangman_word(char eng_word_line[]) {
         }
         return length;
 }
+
 void hangman() {
         int hangman_count  = 1;
         int try_num = 1;
@@ -541,4 +556,44 @@ void hangman() {
   scanf("%c",&input_word);
   if(input_word=='\n')
     system("clear");
+}
+
+int getSplit(char* msg, char* split, char*** result){
+    int i=0;
+    int charCount=0;
+    int totalCount=0;
+    char *prevPoint=msg;
+    char *currPoint=NULL;
+    char **array2d=NULL;
+    do{
+        currPoint=strstr(prevPoint, split);
+        if(currPoint!=NULL){
+            totalCount=currPoint-msg;
+            if(prevPoint==msg) charCount=totalCount;
+            else charCount=currPoint-prevPoint;
+
+            array2d=(char**)realloc( array2d, sizeof(char*)*(i+1));
+            array2d[i]=(char*)malloc(charCount);
+            strncpy(array2d[i], prevPoint, charCount);
+            array2d[i][charCount]='\0';
+            prevPoint=currPoint+strlen(split);
+        }
+    } while(currPoint!=NULL && ++i);
+    if(i>0) {
+        array2d=(char**)realloc( array2d, sizeof(char*)*(i+1));
+        charCount=strlen(msg)-totalCount;
+        array2d[i]=(char*)malloc(charCount);
+        strncpy(array2d[i], prevPoint, charCount);
+        array2d[i][charCount]='\0';
+        ++i;
+        *result=array2d;
+    }
+    return i;
+}
+
+void freeSplit(char** result, int count){
+    while(--count>-1){
+        free(result[count]);
+    }
+    free(result);
 }
