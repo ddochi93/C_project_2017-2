@@ -20,19 +20,19 @@ Node * cursor = NULL;
 void wordQuiz();    // 영어단어 맞추기 함수
 void flashCard();    // 플래쉬 카드 함수
 void hangman();
-void manageWord();
-void addFile();
-void newWords();
-void addWords(int num, bool is_new_file);
-void showDic();
-void ShowDicFiles();
+void manageWord();   // 단어장관리 구현
+void addFile();     // 단어장관리 - 새 파일 추가하기 구현
+void newWords();    // 단어장관리 - 새 단어 추가하기 구현
+void addWords(int num, bool is_new_file);  // num번 단어장파일에 단어를 추가하는데, is_new_file로 새로운 파일에 추가하는지 기존 파일에 추가하는지 확인하여 동작
+void showDic();      // 단어장관리 - 단어장 보기 구현
+void ShowDicFiles(); // 단어장관리 - 단어파일 목록보기 구현
 void myflush();
 void gotoxy(int x, int y);
 void ascendingOrderWords(char * buffer, int buffersize, FILE * fp);
 void randomWords(char *buffer, int buffersize, FILE *fp);
 FILE * DayDicLoad();             //입력한 일차의 단어장을 로드하는 함수.
 int getSplit(char* msg, char* split, char*** result); //msg문자열을 split문자열 기준으로 분리하여 result로 리턴, int형 리턴값은 split된 개수
-void freeSplit(char** result, int count);
+void freeSplit(char** result, int count);  //getSpit()함수에서 반환된 동적 문자열 배열 result에 대한 free를 수행
 int compare(const void *a, const void *b); //qsort()함수에 사용할 비교함수
 
 void myFree(Node *);            //각 게임에서  할당된 newNode들을 free시키는 함수. (1204 실습 참조)
